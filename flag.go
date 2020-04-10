@@ -329,6 +329,7 @@ type FlagSet struct {
 	parsed        bool
 	actual        map[string]*Flag
 	formal        map[string]*Flag
+	ordered       []*Flag
 	args          []string // arguments after flags
 	errorHandling ErrorHandling
 	output        io.Writer // nil means stderr; use Output() accessor
@@ -384,7 +385,7 @@ func (f *FlagSet) SetOutput(output io.Writer) {
 // VisitAll visits the flags in lexicographical order, calling fn for each.
 // It visits all flags, even those not set.
 func (f *FlagSet) VisitAll(fn func(*Flag)) {
-	for _, flag := range sortFlags(f.formal) {
+	for _, flag := range f.ordered {
 		fn(flag)
 	}
 }
@@ -398,7 +399,7 @@ func VisitAll(fn func(*Flag)) {
 // Visit visits the flags in lexicographical order, calling fn for each.
 // It visits only those flags that have been set.
 func (f *FlagSet) Visit(fn func(*Flag)) {
-	for _, flag := range sortFlags(f.actual) {
+	for _, flag := range f.ordered {
 		fn(flag)
 	}
 }
@@ -854,6 +855,7 @@ func (f *FlagSet) Var(value Value, name string, usage string) {
 		f.formal = make(map[string]*Flag)
 	}
 	f.formal[name] = flag
+	f.ordered = append(f.ordered, flag)
 }
 
 // Var defines a flag with the specified name and usage string. The type and
